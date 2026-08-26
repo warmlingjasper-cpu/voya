@@ -37,12 +37,14 @@
 
                 {% include "components/house_card.html" %}
 
-                <a
-                    href="{% url 'house_update' house.id %}"
-                    class="btn btn-outline-airbnb btn-sm mt-2 w-100"
-                >
-                    Edit
-                </a>
+                <div class="mt-2">
+                    <a
+                        href="{% url 'house_update' house.id %}"
+                        class="btn btn-outline-airbnb btn-sm mt-2 w-100"
+                    >
+                        Edit
+                    </a>
+                </div>
 
             </div>
 
