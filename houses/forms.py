@@ -1,11 +1,23 @@
 from django import forms
 from .models import House, Reservation
 
+MAX_IMAGE_SIZE = 5 * 1024 * 1024  # 5 MB
+MAX_ADDITIONAL_IMAGES = 10
+
+
+def validate_image_size(image):
+    if image.size > MAX_IMAGE_SIZE:
+        raise forms.ValidationError(
+            "Image file must be smaller than 5 MB."
+        )
+
+
 class MultipleFileInput(forms.ClearableFileInput):
     allow_multiple_selected = True
 
 
 class MultipleImageField(forms.ImageField):
+
 
     def __init__(self, *args, **kwargs):
         kwargs.setdefault(
@@ -16,21 +28,44 @@ class MultipleImageField(forms.ImageField):
 
     def clean(self, data, initial=None):
 
-        single_file_clean = super().clean
-
         if isinstance(data, (list, tuple)):
 
-            return [
-                single_file_clean(file, initial)
-                for file in data
-            ]
+            if len(data) > MAX_ADDITIONAL_IMAGES:
+                raise forms.ValidationError(
+                    f"You can upload a maximum of "
+                    f"{MAX_ADDITIONAL_IMAGES} additional images."
+                )
 
-        return [
-            single_file_clean(data, initial)
-        ]
+            cleaned_files = []
 
+            for file in data:
+                cleaned_file = super().clean(file, initial)
+
+                validate_image_size(cleaned_file)
+
+                cleaned_files.append(cleaned_file)
+
+            return cleaned_files
+
+        if data:
+            cleaned_file = super().clean(data, initial)
+
+            validate_image_size(cleaned_file)
+
+            return [cleaned_file]
+
+        return []
 
 class HouseForm(forms.ModelForm):
+
+    image = forms.ImageField(
+        validators=[validate_image_size],
+        widget=forms.ClearableFileInput(
+            attrs={
+                "accept": "image/*"
+            }
+        )
+    )
 
     additional_images = MultipleImageField(
         required=False,
@@ -56,13 +91,6 @@ class HouseForm(forms.ModelForm):
             "image",
         ]
 
-        widgets = {
-            "image": forms.ClearableFileInput(
-                attrs={
-                    "accept": "image/*"
-                }
-            ),
-        }
 
 class ReservationForm (forms.ModelForm):
     class Meta:
