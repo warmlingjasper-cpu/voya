@@ -30,21 +30,33 @@ DEBUG = os.environ.get("DEBUG", "False") == "True"
 
 if not DEBUG:
     SECURE_SSL_REDIRECT = True
+
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
 
     SECURE_HSTS_SECONDS = 31536000
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = False
+
+    X_FRAME_OPTIONS = "DENY"
 
 ALLOWED_HOSTS = os.environ.get(
     "ALLOWED_HOSTS",
     "127.0.0.1,localhost"
 ).split(",")
 
+
 RENDER_EXTERNAL_HOSTNAME = os.environ.get("RENDER_EXTERNAL_HOSTNAME")
 
 if RENDER_EXTERNAL_HOSTNAME:
     ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://voya-app.onrender.com",
+]
 
 
 # Application definition
@@ -92,6 +104,8 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'airbnb_clone2.wsgi.application'
+
+
 
 
 # Database
