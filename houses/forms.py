@@ -132,7 +132,6 @@ class ReservationForm (forms.ModelForm):
             self.fields["guests"].widget.attrs["max"] = house.guests
 
     def clean(self):
-
         cleaned_data = super().clean()
 
         check_in = cleaned_data.get("check_in")
@@ -140,18 +139,22 @@ class ReservationForm (forms.ModelForm):
         guests = cleaned_data.get("guests")
 
         if check_in and check_out:
-
             if check_out <= check_in:
                 raise forms.ValidationError(
                     "Check-out must be after check-in."
                 )
 
-            if self.house and guests:
+        if guests is not None:
 
-                if guests > self.house.guests:
-                    raise forms.ValidationError(
-                        f"This house allows a maximum of "
-                        f"{self.house.guests} guests"
-                    )
+            if guests < 1:
+                raise forms.ValidationError(
+                    "Number of guests must be at least 1."
+                )
+
+            if self.house and guests > self.house.guests:
+                raise forms.ValidationError(
+                    f"This house allows a maximum of "
+                    f"{self.house.guests} guests"
+                )
 
         return cleaned_data
